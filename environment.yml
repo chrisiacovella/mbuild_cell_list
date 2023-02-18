@@ -1,0 +1,6 @@
+name: mbuild_cell_list
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - mbuild
