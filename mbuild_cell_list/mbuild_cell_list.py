@@ -56,7 +56,7 @@ class CellList():
         The cell containing the point
     """
     def __init__(self, box, n_cells=[3,3,3], periodicity=[True,True,True], box_min=[0,0,0]):
-        self.box = box
+        self._box = box
         self._n_cells = np.array(n_cells,dtype=int)
         self._n_cells_total = np.prod(self._n_cells)
         
@@ -64,12 +64,12 @@ class CellList():
         if (self._n_cells < [3,3,3] ).any():
             raise Exception(f'The CellList must have at least 3 cells in each dimension, found: {n_cells}')
         
-        self._box_min = box_min
+        self._box_min = np.array(box_min)
         
-        self._cell_sizes = np.array(self.box.lengths)/self._n_cells
+        self._cell_sizes = np.array(self._box.lengths)/self._n_cells
         
         self.cells = []
-        self._periodicity = periodicity
+        self._periodicity = np.array(periodicity)
         
         self._init_full()
         self._from_particles = False
@@ -129,6 +129,11 @@ class CellList():
         c : int
             The cell containing the point
         """
+        if (np.array(xyz) <self._box_min).any():
+            raise Exception('Particle outside bounds of the box.')
+        if ((np.array(xyz) - self._box_min) > np.array(self._box.lengths)).any():
+            raise Exception('Particle outside bounds of the box.')
+            
         vals = np.array((np.array(xyz)-self._box_min)/self._cell_sizes, dtype=int)
         c = vals[0]+vals[1]*self._n_cells[0]+vals[2]*self._n_cells[0]*self._n_cells[1]
         
@@ -163,7 +168,7 @@ class CellList():
                 else:
                     msg = f'The particle is outside bounds of the box.\
                             \nposition: {particle.pos}\n\
-                            box: {self.box.lengths}\n\
+                            box: {self._box.lengths}\n\
                             min box dimensions: {self.minbox}'
                     raise Exception(msg)
 
@@ -194,7 +199,7 @@ class CellList():
             else:
                 msg = f'The compound is outside bounds of the box.\
                         \nposition: {compound.pos}\n\
-                        box: {self.box.lengths}\n\
+                        box: {self._box.lengths}\n\
                         min box dimensions: {self.minbox}'
                 raise Exception(msg)
                 
@@ -213,6 +218,7 @@ class CellList():
         #since it is empty we
         self._from_particles = False
         self._from_com = False
+        
     def members(self, c):
         """Returns all members of a given cell .
 
@@ -272,8 +278,8 @@ class CellList():
         """Returns the periodicity in each direction.
         Returns
         ------
-        periodicity : list, dtype=bool
-            The total periodicity in each direction.
+        periodicity : np.array, dtype=bool
+            The periodicity in each direction.
         """
         return self._periodicity
 
@@ -286,3 +292,13 @@ class CellList():
             A numpy array of the size of the cells of cells in each x,y, and z direction.
         """
         return self._cell_sizes
+        
+    @property
+    def box(self):
+        """Returns the box information used to initialize the cell list.
+        Returns
+        ------
+        box : mb.Box
+            An mbuild Box.
+        """
+        return self._box
