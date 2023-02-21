@@ -23,6 +23,9 @@ jobs:
       matrix:
         os: [macOS-latest, ubuntu-latest, windows-latest]
         python-version: [3.8, 3.9, "3.10"]
+        exclude:
+          - os: windows-latest
+            python-version: 3.8
 
     steps:
       - uses: actions/checkout@v3
@@ -42,6 +45,15 @@ jobs:
           channels: conda-forge,defaults
           extra-specs: |
             python=${{ matrix.python-version }}
+	if: runner.os != 'Windows'
+
+      - name: Install Mamba (Windows)
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file:  devtools/conda-envs/environment-dev-win.yml
+          extra-specs: |
+            python=${{ matrix.python-version }}
+        if: runner.os == 'Windows'
 
       - name: Install package
         # conda setup requires this special shell

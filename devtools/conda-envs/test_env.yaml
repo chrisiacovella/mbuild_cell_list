@@ -9,7 +9,7 @@ dependencies:
   - python
   - pip
   - numpy
-  - mbuild>=0.11.0
+  - mbuild>=0.16.0
 
     # Testing
   - pytest
