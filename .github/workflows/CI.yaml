@@ -41,6 +41,7 @@ jobs:
           channels: conda-forge,defaults
           extra-specs: |
             python=${{ matrix.python-version }}
+        if: runner.os != 'Windows'
       - name: Install package
         # conda setup requires this special shell
         shell: bash -l {0}
