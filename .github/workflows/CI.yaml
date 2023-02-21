@@ -42,6 +42,14 @@ jobs:
           extra-specs: |
             python=${{ matrix.python-version }}
         if: runner.os != 'Windows'
+      - uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: devtools/conda-envs/environment-dev-win.yml
+          environment-name: test
+          channels: conda-forge,defaults
+          extra-specs: |
+            python=${{ matrix.python-version }}
+        if: runner.os == 'Windows'
       - name: Install package
         # conda setup requires this special shell
         shell: bash -l {0}
