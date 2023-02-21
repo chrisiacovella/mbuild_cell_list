@@ -293,4 +293,8 @@ def test_insert_compounds():
     # this should fail if we mix ways of initializing
     with pytest.raises(Exception):
         cell_list.insert_compound_position(argon)
+        
+    with pytest.raises(Exception):
+        cell_list._check_cell(cell_list.n_cells_total+10)
+    assert cell_list._check_cell(0) == True
 

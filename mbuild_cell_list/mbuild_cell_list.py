@@ -61,7 +61,7 @@ class CellList():
         self._n_cells_total = np.prod(self._n_cells)
         
 
-        if (self._n_cells < [3,3,3] ).any():
+        if (self._n_cells < np.array([3,3,3]) ).any():
             raise Exception(f'The CellList must have at least 3 cells in each dimension, found: {n_cells}')
         
         self._box_min = np.array(box_min)
@@ -139,7 +139,21 @@ class CellList():
         
         return c
         
-    
+    def _check_cell(self, c):
+        # The cell_containing function  explicitly checks if a particle is within the
+        # box bounds, and will raise an exception if we are outside the box.
+        # We can actually have a particle that is out of bounds and still satisfy c < n_cell_total in some cases.
+        # Checking to ensure that c < n_cells_total only ensure we don't have a seg-fault
+        # This is likley unnecessary since cell_containing should catch an out of bounds particle before we check.
+        if c < self._n_cells_total:
+            return True
+        else:
+            msg = f'The particle is outside bounds of the box.\
+                \nposition: {particle.pos}\n\
+                box: {self._box.lengths}\n\
+                min box dimensions: {self.minbox}'
+            raise Exception(msg)
+            
     def insert_compound_particles(self, compound):
         """This will look at the lowest level of the hierarchy of an mbuild Compound
         (i.e., the particles) and insert them  into the cell list.
@@ -161,16 +175,11 @@ class CellList():
         if isinstance(compound, mb.Compound):
             for particle in compound.particles():
                 c = self.cell_containing(particle.pos)
-                if c < self._n_cells_total:
+                if self._check_cell(c):
                     self.cells[c]._members.append(particle)
                     for neigh in self.cells[c]._neighbor_cells:
                         self.cells[neigh]._neighbor_members.append(particle)
-                else:
-                    msg = f'The particle is outside bounds of the box.\
-                            \nposition: {particle.pos}\n\
-                            box: {self._box.lengths}\n\
-                            min box dimensions: {self.minbox}'
-                    raise Exception(msg)
+                   
 
                     
     def insert_compound_position(self, compound):
@@ -192,16 +201,10 @@ class CellList():
 
         if isinstance(compound, mb.Compound):
             c = self.cell_containing(compound.pos)
-            if c < self._n_cells_total:
+            if self._check_cell(c):
                 self.cells[c]._members.append(compound)
                 for neigh in self.cells[c].neighbor_cells:
                     self.cells[neigh]._neighbor_members.append(compound)
-            else:
-                msg = f'The compound is outside bounds of the box.\
-                        \nposition: {compound.pos}\n\
-                        box: {self._box.lengths}\n\
-                        min box dimensions: {self.minbox}'
-                raise Exception(msg)
                 
     def empty_cells(self):
         """Remove all members from the cell list.
