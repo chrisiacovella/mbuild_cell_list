@@ -1,8 +1,8 @@
 mbuild_cell_list
 ==============================
 [//]: # (Badges)
-[![GitHub Actions Build Status](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/mbuild_cell_list/workflows/CI/badge.svg)](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/mbuild_cell_list/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/mbuild_cell_list/branch/main/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/mbuild_cell_list/branch/main)
+[![GitHub Actions Build Status](https://github.com/chrisiacovella/mbuild_cell_list/workflows/CI/badge.svg)](https://github.com/chrisiacovella/mbuild_cell_list/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/chrisiacovella/mbuild_cell_list/branch/main/graph/badge.svg)](https://codecov.io/gh/chrisiacovella/mbuild_cell_list/branch/main)
 
 
 simple cell list designed to work with mbuild Compounds
