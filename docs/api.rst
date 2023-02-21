@@ -4,4 +4,4 @@ API Documentation
 .. autosummary::
    :toctree: autosummary
 
-   mbuild_cell_list.canvas
+   mbuild_cell_list.CellList

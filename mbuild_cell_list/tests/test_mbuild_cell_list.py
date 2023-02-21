@@ -81,7 +81,7 @@ def test_init_cell_list_periodicity_FFF():
     cell_list = mbcl.CellList(box=box, n_cells=[3,3,3], periodicity=[False,False,False], box_min=[0,0,0])
     assert (cell_list.periodicity == np.array([False,False,False])).all()
     
-    num_neighbors = [7, 26, 7, 7, 26, 7, 7, 26, 7, 7, 26, 7, 7, 26, 7, 7, 26, 7, 7, 26, 7, 7, 26, 7, 7, 26, 7 ]
+    num_neighbors = [7, 11, 7, 11, 17, 11, 7, 11, 7, 11, 17, 11, 17, 26, 17, 11, 17, 11, 7, 11, 7, 11, 17, 11, 7, 11, 7]
     for c, cell in enumerate(cell_list.cells):
         assert len(cell_list.cells[c].neighbor_cells) == num_neighbors[c]
 
@@ -91,10 +91,30 @@ def test_init_cell_list_periodicity_FFT():
     cell_list = mbcl.CellList(box=box, n_cells=[3,3,3], periodicity=[False,False,True], box_min=[0,0,0])
     assert (cell_list.periodicity == np.array([False,False,True])).all()
     
-    num_neighbors = [11, 26, 11, 11, 26, 11, 11, 26, 11, 11, 26, 11, 11, 26, 11, 11, 26, 11, 11, 26, 11, 11, 26, 11, 11, 26, 11 ]
+    num_neighbors = [11, 17, 11, 17, 26, 17, 11, 17, 11, 11, 17, 11, 17, 26, 17, 11, 17, 11, 11, 17, 11, 17, 26, 17, 11, 17, 11]
+    for c, cell in enumerate(cell_list.cells):
+        assert len(cell_list.cells[c].neighbor_cells) == num_neighbors[c]
+        
+    cell_list = mbcl.CellList(box=box, n_cells=[3,3,3], periodicity=[False,True,False], box_min=[0,0,0])
+    assert (cell_list.periodicity == np.array([False,True,False])).all()
+    
+    num_neighbors = [11, 17, 11, 11, 17, 11, 11, 17, 11, 17, 26, 17, 17, 26, 17, 17, 26, 17, 11, 17, 11, 11, 17, 11, 11, 17, 11]
+    for c, cell in enumerate(cell_list.cells):
+        assert len(cell_list.cells[c].neighbor_cells) == num_neighbors[c]
+        
+    cell_list = mbcl.CellList(box=box, n_cells=[3,3,3], periodicity=[True,False,False], box_min=[0,0,0])
+    assert (cell_list.periodicity == np.array([True,False,False])).all()
+    
+    num_neighbors = [11, 11, 11, 17, 17, 17, 11, 11, 11, 17, 17, 17, 26, 26, 26, 17, 17, 17, 11, 11, 11, 17, 17, 17, 11, 11, 11]
     for c, cell in enumerate(cell_list.cells):
         assert len(cell_list.cells[c].neighbor_cells) == num_neighbors[c]
 
+def test_init_box():
+    # check that we can initialize a box properly just from a list
+    box = mb.Box([3,3,3])
+    cell_list = mbcl.CellList(box=[3.0,3.0,3.0], n_cells=[3,3,3], periodicity=[False,True,True], box_min=[0,0,0])
+    assert (np.array(box.lengths) == np.array(cell_list.box.lengths)).all()
+    
 def test_init_cell_list_periodicity_FTT():
 
     box = mb.Box([3,3,3])
@@ -105,6 +125,19 @@ def test_init_cell_list_periodicity_FTT():
     for c, cell in enumerate(cell_list.cells):
         assert len(cell_list.cells[c].neighbor_cells) == num_neighbors[c]
 
+    cell_list = mbcl.CellList(box=box, n_cells=[3,3,3], periodicity=[True,False,True], box_min=[0,0,0])
+    assert (cell_list.periodicity == np.array([True,False,True])).all()
+
+    num_neighbors = [17, 17, 17, 26, 26, 26, 17, 17, 17, 17, 17, 17, 26, 26, 26, 17, 17, 17, 17, 17, 17, 26, 26, 26, 17, 17, 17 ]
+    for c, cell in enumerate(cell_list.cells):
+        assert len(cell_list.cells[c].neighbor_cells) == num_neighbors[c]
+
+    cell_list = mbcl.CellList(box=box, n_cells=[3,3,3], periodicity=[True,True,False], box_min=[0,0,0])
+    assert (cell_list.periodicity == np.array([True,True,False])).all()
+
+    num_neighbors = [17, 17, 17, 17, 17, 17, 17, 17, 17, 26, 26, 26, 26, 26, 26, 26, 26, 26, 17, 17, 17, 17, 17, 17, 17, 17, 17 ]
+    for c, cell in enumerate(cell_list.cells):
+        assert len(cell_list.cells[c].neighbor_cells) == num_neighbors[c]
 
 def test_init_cell_list_too_small():
     box = mb.Box([3,3,3])

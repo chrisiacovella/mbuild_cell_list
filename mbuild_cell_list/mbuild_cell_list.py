@@ -44,19 +44,31 @@ class Cell():
 class CellList():
     """Cell list compatible with mbuild Compounds.
     The cell list can be constructed based on either the center of mass of a Compound
-    or based on the particles contained in a Compound.
-
-    Parameters
-    ----------
-    xyz :  np.ndarray, shape=3(,), dtype=float
-    
-    Returns
-    ------
-    c : int
-        The cell containing the point
+    or based on the position of the particles contained within a Compound.
     """
-    def __init__(self, box, n_cells=[3,3,3], periodicity=[True,True,True], box_min=[0,0,0]):
-        self._box = box
+    def __init__(self, box, n_cells=[3,3,3], periodicity=[True,True,True], box_min=[0.0,0.0,0.0]):
+        """Initialize the cell list.
+        Note this will initialize the full cell list where each cell has 26 neighbors when fully periodic.
+
+        Parameters
+        ----------
+        box : list, length=3, dtype=float or mb.Box
+            Either an mBuild Box or list of length=3 representing box lengths
+        n_cells : list, length=3, dtype=int, default=[3,3,3]
+            Number of cells in x,y,z dimensions, must be greater than 3
+        periodicity, list, length=3, type=bool, default=[True,True,True]
+            Periodicity in each box dimensions
+        box_min, list, length=3, dtype=float, default=[0.0,0.0,0.0]
+            Minimium position of the box.
+        Returns
+        ------
+        """
+        if isinstance(box, mb.Box):
+            self._box = box
+        else:
+            assert len(box) == 3
+            self._box = mb.Box(box)
+
         self._n_cells = np.array(n_cells,dtype=int)
         self._n_cells_total = np.prod(self._n_cells)
         
@@ -95,19 +107,22 @@ class CellList():
                     start = []
                     end = []
                     
-                    for kk in range(0,3):
+                    
+                    for kk, tmp in enumerate([i,j,k]):
+                        
                         if not self._periodicity[kk]:
-                            if i == 0:
+                            if tmp == 0:
                                 start.append(0)
                             else:
                                 start.append(-1)
-                            if i == self._n_cells[kk]-1:
+                            if tmp == self._n_cells[kk]-1:
                                 end.append(0)
                             else:
                                 end.append(1)
                         else:
                             start.append(-1)
                             end.append(1)
+                            
                     for z in range(start[2], end[2]+1):
                         for y in range(start[1], end[1]+1):
                             for x in range(start[0], end[0]+1):
@@ -122,7 +137,7 @@ class CellList():
 
         Parameters
         ----------
-        xyz :  np.ndarray, shape=3(,), dtype=float
+        xyz :  np.ndarray, shape=(3), dtype=float
         
         Returns
         ------
@@ -190,7 +205,7 @@ class CellList():
         ----------
         compound :  mb.Compound
             An mbuild Compound that will be inserted into the cell list.
-        
+            
         Returns
         ------
         """
@@ -211,7 +226,7 @@ class CellList():
 
         Parameters
         ----------
-
+        
         Returns
         ------
         """
@@ -223,12 +238,13 @@ class CellList():
         self._from_com = False
         
     def members(self, c):
-        """Returns all members of a given cell .
+        """Returns all members of a given cell.
 
         Parameters
         ----------
         c : int
             The cell of interest.
+            
         Returns
         ------
         members : list, dtype=mb.Compound
@@ -244,6 +260,7 @@ class CellList():
         ----------
         c : int
             The cell of interest.
+            
         Returns
         ------
         members : list, dtype=mb.Compound
