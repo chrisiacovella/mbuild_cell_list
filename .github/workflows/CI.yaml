@@ -40,8 +40,7 @@ jobs:
           environment-file: devtools/conda-envs/test_env.yaml
           environment-name: test
           channels: conda-forge,defaults
-          extra-specs: |
-            python=${{ matrix.python-version }}
+          extra-specs: | python=${{ matrix.python-version }}
 	if: runner.os != 'Windows'
 
       - name: Install Mamba (Windows)
