@@ -234,11 +234,9 @@ class CellList():
         members : list, dtype=mb.Compound
             A list of all compounds that are within the cell.
         """
-        if c < self._n_cells_total:
+        if self._check_cell(c):
             return self.cells[c].members
-        else:
-            raise Exception(f'The cell requested {c} is out of bounds, total number of cells: {self._n_cells_total}')
-
+ 
     def neighbor_members(self, c):
         """Returns members of all neighboring cells.
 
@@ -251,10 +249,8 @@ class CellList():
         members : list, dtype=mb.Compound
             A list of all compounds that are within the cell.
         """
-        if c < self._n_cells_total:
+        if self._check_cell(c):
             return self.cells[c].neighbor_members
-        else:
-            raise Exception(f'The cell requested {c} is out of bounds, total number of cells: {self._n_cells_total}')
 
     @property
     def n_cells(self):
