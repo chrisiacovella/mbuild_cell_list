@@ -163,11 +163,7 @@ class CellList():
         if c < self._n_cells_total:
             return True
         else:
-            msg = f'The particle is outside bounds of the box.\
-                \nposition: {particle.pos}\n\
-                box: {self._box.lengths}\n\
-                min box dimensions: {self.minbox}'
-            raise Exception(msg)
+            raise Exception(f'Cell {c} is outside the bounds of the cell list.\n n_cell_total: {self._n_cells_total}')
             
     def insert_compound_particles(self, compound):
         """This will look at the lowest level of the hierarchy of an mbuild Compound
