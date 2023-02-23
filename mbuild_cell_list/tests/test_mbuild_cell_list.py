@@ -375,4 +375,63 @@ def test_insert_compound_by_underlying_particles_basic():
         assert len(cell_list.members(c)) == 3
         assert len(cell_list.neighbor_members(c)) == 78
     
-    
+def test_wrap_particles():
+    argon = mb.Compound(name='Ar', element='Ar', charge=0)
+        
+    cell_list = mbcl.CellList(box=[3.0,3.0,3.0], n_cells=[3,3,3], periodicity=[True,True,True], box_min=[0,0,0])
+
+    temp = mb.clone(argon)
+    temp.translate_to([3.5, 0.0, 0.0])
+
+    cell_list.insert_compound_position(temp, wrap_pbc=True)
+    assert len(cell_list.members(0)) == 1
+
+    cell_list.empty_cells()
+
+    temp = mb.clone(argon)
+    temp.translate_to([-0.5, 0.0, 0.0])
+    cell_list.insert_compound_position(temp, wrap_pbc=True)
+    assert len(cell_list.members(2)) == 1
+
+    cell_list.empty_cells()
+
+    temp = mb.clone(argon)
+    temp.translate_to([0.0, 3.5, 0.0])
+    cell_list.insert_compound_position(temp, wrap_pbc=True)
+    assert len(cell_list.members(0)) == 1
+
+    cell_list.empty_cells()
+
+    temp = mb.clone(argon)
+    temp.translate_to([1.5, 3.5, 0.0])
+    cell_list.insert_compound_position(temp, wrap_pbc=True)
+    assert len(cell_list.members(1)) == 1
+
+    cell_list.empty_cells()
+
+    temp = mb.clone(argon)
+    temp.translate_to([2.5, 3.5, 0.0])
+    cell_list.insert_compound_position(temp, wrap_pbc=True)
+    assert len(cell_list.members(2)) == 1
+
+    cell_list.empty_cells()
+
+    temp = mb.clone(argon)
+    temp.translate_to([0.5, 0.5, 3.5])
+    cell_list.insert_compound_position(temp, wrap_pbc=True)
+    assert len(cell_list.members(0)) == 1
+
+    cell_list.empty_cells()
+
+    temp = mb.clone(argon)
+    temp.translate_to([1.5, 0.5, 3.5])
+    cell_list.insert_compound_position(temp, wrap_pbc=True)
+    assert len(cell_list.members(1)) == 1
+
+    cell_list.empty_cells()
+
+    temp = mb.clone(argon)
+    temp.translate_to([1.5, 0.5, -0.5])
+    cell_list.insert_compound_position(temp, wrap_pbc=True)
+    assert len(cell_list.members(19)) == 1
+

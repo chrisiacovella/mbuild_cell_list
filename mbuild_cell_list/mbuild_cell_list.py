@@ -18,7 +18,8 @@ class Cell():
         self._members = []
         self._neighbor_members = []
         self._pos = np.array([0.0,0.0,0.0])
-        
+        self._neighbor_cells_shift = {}
+        self._ghost_cells = []
         
     @property
     def members(self):
@@ -39,6 +40,13 @@ class Cell():
     def neighbor_members(self):
         """Returns a list of all members of the cell and neighboring cells."""
         return self._neighbor_members
+        
+    @property
+    def neighbor_cells_shift(self):
+        """Returns a dictionary that defines how to shift the contents of a neighboring cell
+        that exists across a periodic boundary, relative to this cell. The key of the dictionary
+        corresponds to the numerical index of the neighboring cell."""
+        return self._neighbor_cells_shift
 
 
 class CellList():
@@ -131,6 +139,14 @@ class CellList():
                                  ((k+z+self._n_cells[2])%self._n_cells[2])*self._n_cells[0]*self._n_cells[1]
                                 if cn != c:
                                     self.cells[c]._neighbor_cells.append(cn)
+                                    
+        for c, cell in enumerate(self.cells):
+            for neigh in cell._neighbor_cells:
+                dist = (self.cells[c].pos-self.cells[neigh].pos)/self._box.lengths
+                flag = []
+                for i in range(0,3):
+                    flag.append(self._anint(dist[i]))
+                cell.neighbor_cells_shift[neigh] = flag
     
     def cell_containing(self, xyz):
         """Return the cell that contains a given point in 3d space.
@@ -154,6 +170,32 @@ class CellList():
         
         return c
         
+    def _shift(self, x):
+        if x >= 1:
+            return int(x)
+        elif x < 0:
+            return int(x-1)
+        else:
+            return 0
+            
+    def _anint(self, x):
+        # function to construct periodic images
+        if x >= 0.5:
+            return 1
+        elif x < -0.5:
+            return -1
+        else:
+            return 0
+            
+    def _wrap_position(self, xyz):
+        deltas = (np.array(xyz)-self._box_min)/np.array(self._box.lengths)
+        xyz_shifted = np.array(xyz)
+        for i, delta in enumerate(deltas):
+            if self._periodicity[i]:
+                xyz_shifted[i] = xyz[i] - self._shift(delta)*self._box.lengths[i]
+
+        return xyz_shifted
+        
     def _check_cell(self, c):
         # The cell_containing function  explicitly checks if a particle is within the
         # box bounds, and will raise an exception if we are outside the box.
@@ -165,7 +207,7 @@ class CellList():
         else:
             raise Exception(f'Cell {c} is outside the bounds of the cell list.\n n_cell_total: {self._n_cells_total}')
             
-    def insert_compound_particles(self, compound):
+    def insert_compound_particles(self, compound, wrap_pbc=False):
         """This will look at the lowest level of the hierarchy of an mbuild Compound
         (i.e., the particles) and insert them  into the cell list.
 
@@ -173,7 +215,8 @@ class CellList():
         ----------
         compound :  mb.Compound
             An mbuild Compound whose particles will be inserted into the cell list.
-        
+        wrap_pbc : bool, default=False
+            If True, particle positions outside of the box bounds will be wrapped to the other side based on defined periodicity.
         Returns
         ------
         """
@@ -185,15 +228,19 @@ class CellList():
         
         if isinstance(compound, mb.Compound):
             for particle in compound.particles():
-                c = self.cell_containing(particle.pos)
+                if wrap_pbc:
+                    pos_shifted = self._wrap_position(particle.pos)
+                    c = self.cell_containing(pos_shifted)
+                else:
+                    c = self.cell_containing(particle.pos)
                 if self._check_cell(c):
                     self.cells[c]._members.append(particle)
                     for neigh in self.cells[c]._neighbor_cells:
-                        self.cells[neigh]._neighbor_members.append(particle)
+                        self.cells[neigh]._neighbor_members.append((particle,c))
                    
 
                     
-    def insert_compound_position(self, compound):
+    def insert_compound_position(self, compound, wrap_pbc=False):
         """This will insert an mbuild Compound into the cell list based upon the
         center-of-mass of the Compound (i.e., compound.pos).
 
@@ -201,7 +248,8 @@ class CellList():
         ----------
         compound :  mb.Compound
             An mbuild Compound that will be inserted into the cell list.
-            
+        wrap_pbc : bool, default=False
+            If True, particle positions outside of the box bounds will be wrapped to the other side based on defined periodicity.
         Returns
         ------
         """
@@ -211,11 +259,15 @@ class CellList():
             raise Exception('Cell list should be consistent in use of Compound center of mass or underlying particle positions, not mixing them.')
 
         if isinstance(compound, mb.Compound):
-            c = self.cell_containing(compound.pos)
+            if wrap_pbc:
+                pos_shifted = self._wrap_position(compound.pos)
+                c = self.cell_containing(pos_shifted)
+            else:
+                c = self.cell_containing(compound.pos)
             if self._check_cell(c):
                 self.cells[c]._members.append(compound)
                 for neigh in self.cells[c].neighbor_cells:
-                    self.cells[neigh]._neighbor_members.append(compound)
+                    self.cells[neigh]._neighbor_members.append((compound, c))
                 
     def empty_cells(self):
         """Remove all members from the cell list.
@@ -263,7 +315,31 @@ class CellList():
             A list of all compounds that are within the cell.
         """
         if self._check_cell(c):
-            return self.cells[c].neighbor_members
+            return [m[0] for m in self.cells[c].neighbor_members]
+    
+    def neighbor_members_and_min_image_shift(self, c):
+        """Returns a list that contains members of all neighboring cells
+        and how to shift those members to create a minimum image reconstruction
+        relative to the cell of interest.
+
+        Parameters
+        ----------
+        c : int
+            The cell of interest.
+            
+        Returns
+        ------
+        (members, shift) : list, dtype=[mb.Compound, np.array shape=(3)]
+            A list of all compounds that are within the cell.
+        """
+        if self._check_cell(c):
+            tmp_list = []
+            for neigh in self.cells[c].neighbor_members:
+                shift = self.cells[c].neighbor_cells_shift[neigh[1]]
+                tmp = [neigh[0], np.array(shift)]
+                tmp_list.append(tmp)
+            return tmp_list
+    
 
     @property
     def n_cells(self):
