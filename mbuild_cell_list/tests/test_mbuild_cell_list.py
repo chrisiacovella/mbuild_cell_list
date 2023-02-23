@@ -375,11 +375,49 @@ def test_insert_compound_by_underlying_particles_basic():
         assert len(cell_list.members(c)) == 3
         assert len(cell_list.neighbor_members(c)) == 78
     
+def test_wrap_particles_base_function():
+    cell_list = mbcl.CellList(box=[3.0,3.0,3.0], n_cells=[3,3,3], periodicity=[True,True,True], box_min=[0,0,0])
+
+    wrapped_xyz = cell_list._wrap_position(np.array([4.0,0.0, 0.0]))
+    assert (wrapped_xyz == np.array([1,0,0])).all()
+
+    wrapped_xyz = cell_list._wrap_position(np.array([-1.0,0.0, 0.0]))
+    assert (wrapped_xyz == np.array([2,0,0])).all()
+
+    wrapped_xyz = cell_list._wrap_position(np.array([0.0,4.0, 0.0]))
+    assert (wrapped_xyz == np.array([0,1,0])).all()
+
+    wrapped_xyz = cell_list._wrap_position(np.array([0.0,-1.0, 0.0]))
+    assert (wrapped_xyz == np.array([0,2,0])).all()
+
+    wrapped_xyz = cell_list._wrap_position(np.array([0.0, 0.0, 4.0]))
+    assert (wrapped_xyz == np.array([0,0,1])).all()
+
+    wrapped_xyz = cell_list._wrap_position(np.array([0.0,0.0, -1.0]))
+    assert (wrapped_xyz == np.array([0,0,2])).all()
+
+    cell_list = mbcl.CellList(box=[3.0,3.0,3.0], n_cells=[3,3,3], periodicity=[False,False,False], box_min=[0,0,0])
+
+    wrapped_xyz = cell_list._wrap_position(np.array([4.0,0.0, 0.0]))
+    assert (wrapped_xyz == np.array([4,0,0])).all()
+
+    wrapped_xyz = cell_list._wrap_position(np.array([0.0,4.0, 0.0]))
+    assert (wrapped_xyz == np.array([0,4,0])).all()
+
+    wrapped_xyz = cell_list._wrap_position(np.array([0.0,0.0, 4.0]))
+    assert (wrapped_xyz == np.array([0,0,4])).all()
+
+    cell_list = mbcl.CellList(box=[3.0,3.0,3.0], n_cells=[3,3,3], periodicity=[True,True,True], box_min=[1.0,1.0,2.0])
+
+    wrapped_xyz = cell_list._wrap_position(np.array([5.0,4.5, 5.5]))
+    assert (wrapped_xyz == np.array([2,1.5,2.5])).all()
+
 def test_wrap_particles():
+
     argon = mb.Compound(name='Ar', element='Ar', charge=0)
         
     cell_list = mbcl.CellList(box=[3.0,3.0,3.0], n_cells=[3,3,3], periodicity=[True,True,True], box_min=[0,0,0])
-
+    
     temp = mb.clone(argon)
     temp.translate_to([3.5, 0.0, 0.0])
 
