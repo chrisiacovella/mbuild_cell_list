@@ -5,7 +5,9 @@ mbuild_cell_list
 [![codecov](https://codecov.io/gh/chrisiacovella/mbuild_cell_list/branch/main/graph/badge.svg)](https://codecov.io/gh/chrisiacovella/mbuild_cell_list/branch/main)
 
 
-simple cell list designed to work with mbuild Compounds
+A simple cell list designed to work with mbuild Compounds. 
+
+https://mbuild-cell-list.readthedocs.io/en/latest/index.html
 
 ### Copyright
 
