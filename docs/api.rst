@@ -4,4 +4,8 @@ API Documentation
 .. autosummary::
    :toctree: autosummary
 
-   mbuild_cell_list.CellList
+.. autoclass:: mbuild_cell_list.CellList
+    :members:
+
+.. autoclass:: mbuild_cell_list.Cell
+    :members:
