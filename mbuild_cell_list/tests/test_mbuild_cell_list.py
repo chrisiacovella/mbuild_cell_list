@@ -72,7 +72,126 @@ def test_init_cell_list_basic():
         assert len(cell_list.members(c)) == 0
         assert len(cell_list.neighbor_members(c)) == 0
         assert len(cell.neighbor_cells) == 26
-        
+
+
+def test_init_cell_list_half_basic():
+    """Examine the minimal size cell list to ensure behavior is as expected
+
+    This test is the same as the basic test, but we are using the half neighbor list.
+    """
+
+    box = mb.Box([3, 3, 3])
+    cell_list = mbcl.CellList(box=box, n_cells=[3, 3, 3], periodicity=[True, True, True], box_min=[0, 0, 0], list_type='half')
+
+    # check that variables are correctly set
+    assert (cell_list.n_cells == np.array([3, 3, 3])).all()
+    assert cell_list.n_cells_total == 27
+    assert cell_list.box == box
+    assert (cell_list.periodicity == np.array([True, True, True])).all()
+
+    # examine each cell
+    for c, cell in enumerate(cell_list.cells):
+        assert len(cell_list.members(c)) == 0
+        assert len(cell_list.neighbor_members(c)) == 0
+        assert len(cell.neighbor_cells) == 13
+
+def test_init_cell_list_half_FFF_count_neighbors():
+    """Examine the half cell list without periodic boundaries to ensure we have the approach number of neighbors.
+    """
+
+    box = mb.Box([3, 3, 3])
+    cell_list_half = mbcl.CellList(box=box, n_cells=[3, 3, 3], periodicity=[False, False, False], box_min=[0, 0, 0], list_type='half')
+
+    # check that variables are correctly set
+    assert (cell_list_half.n_cells == np.array([3, 3, 3])).all()
+    assert cell_list_half.n_cells_total == 27
+    assert cell_list_half.box == box
+    assert (cell_list_half.periodicity == np.array([False, False, False])).all()
+
+    # examine each cell
+    sum_of_neighbors = 0
+    for c, cell in enumerate(cell_list_half.cells):
+        assert len(cell_list_half.members(c)) == 0
+        assert len(cell_list_half.neighbor_members(c)) == 0
+        sum_of_neighbors += len(cell.neighbor_cells)
+
+    # check that we have the correct number of neighboring cells
+    # this is half of the number of cells neighbors for the full neighbor list
+    assert sum_of_neighbors == 158
+
+def test_init_cell_list_half_one_true_count_neighbors():
+    """Examine the half cell list without periodic boundaries to ensure we have the approach number of neighbors.
+    """
+
+    box = mb.Box([3, 3, 3])
+    cell_list_half = mbcl.CellList(box=box, n_cells=[3, 3, 3], periodicity=[True, False, False], box_min=[0, 0, 0], list_type='half')
+
+    # check that variables are correctly set
+
+    sum_of_neighbors = 0
+    for c, cell in enumerate(cell_list_half.cells):
+        sum_of_neighbors += len(cell.neighbor_cells)
+
+    assert sum_of_neighbors == 207
+
+    cell_list_half = mbcl.CellList(box=box, n_cells=[3, 3, 3], periodicity=[False, True, False], box_min=[0, 0, 0], list_type='half')
+
+    # check that variables are correctly set
+
+    sum_of_neighbors = 0
+    for c, cell in enumerate(cell_list_half.cells):
+        sum_of_neighbors += len(cell.neighbor_cells)
+
+    assert sum_of_neighbors == 207
+
+
+    cell_list_half = mbcl.CellList(box=box, n_cells=[3, 3, 3], periodicity=[False, False, True], box_min=[0, 0, 0], list_type='half')
+
+    # check that variables are correctly set
+
+    sum_of_neighbors = 0
+    for c, cell in enumerate(cell_list_half.cells):
+        sum_of_neighbors += len(cell.neighbor_cells)
+
+    assert sum_of_neighbors == 207
+
+
+def test_init_cell_list_half_two_true_count_neighbors():
+    """Examine the half cell list without periodic boundaries to ensure we have the approach number of neighbors.
+    """
+
+    box = mb.Box([3, 3, 3])
+    cell_list_half = mbcl.CellList(box=box, n_cells=[3, 3, 3], periodicity=[True, True, False], box_min=[0, 0, 0], list_type='half')
+
+    # check that variables are correctly set
+
+    sum_of_neighbors = 0
+    for c, cell in enumerate(cell_list_half.cells):
+        sum_of_neighbors += len(cell.neighbor_cells)
+
+    assert sum_of_neighbors == 270
+
+    cell_list_half = mbcl.CellList(box=box, n_cells=[3, 3, 3], periodicity=[False, True, True], box_min=[0, 0, 0], list_type='half')
+
+    # check that variables are correctly set
+
+    sum_of_neighbors = 0
+    for c, cell in enumerate(cell_list_half.cells):
+        sum_of_neighbors += len(cell.neighbor_cells)
+
+    assert sum_of_neighbors == 270
+
+
+    cell_list_half = mbcl.CellList(box=box, n_cells=[3, 3, 3], periodicity=[True, False, True], box_min=[0, 0, 0], list_type='half')
+
+    # check that variables are correctly set
+
+    sum_of_neighbors = 0
+    for c, cell in enumerate(cell_list_half.cells):
+        sum_of_neighbors += len(cell.neighbor_cells)
+
+    assert sum_of_neighbors == 270
+
 def test_init_cell_list_periodicity_FFF():
 
     box = mb.Box([3,3,3])

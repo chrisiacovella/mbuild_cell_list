@@ -33,7 +33,7 @@ class Cell():
 
     @property
     def neighbor_cells(self):
-        """Returns a list of all cells that are neigbors of the current cell."""
+        """Returns a list of all cells that are neighbors of the current cell."""
         return self._neighbor_cells
         
     @property
@@ -54,9 +54,9 @@ class CellList():
     The cell list can be constructed based on either the center of mass of a Compound
     or based on the position of the particles contained within a Compound.
     """
-    def __init__(self, box, n_cells=[3,3,3], periodicity=[True,True,True], box_min=[0.0,0.0,0.0]):
+    def __init__(self, box, n_cells=[3,3,3], periodicity=[True,True,True], box_min=[0.0,0.0,0.0], list_type='full'):
         """Initialize the cell list.
-        Note this will initialize the full cell list where each cell has 26 neighbors when fully periodic.
+        Note by default this will initialize the full cell list where each cell has 26 neighbors when fully periodic.
 
         Parameters
         ----------
@@ -67,7 +67,11 @@ class CellList():
         periodicity, list, length=3, type=bool, default=[True,True,True]
             Periodicity in each box dimensions
         box_min, list, length=3, dtype=float, default=[0.0,0.0,0.0]
-            Minimium position of the box.
+            Minimum position of the box.
+        list_type, str, default='full'
+            The type of cell list to initialize. Options are 'full' or 'half'.
+
+
         Returns
         ------
         """
@@ -90,8 +94,13 @@ class CellList():
         
         self.cells = []
         self._periodicity = np.array(periodicity)
-        
-        self._init_full()
+
+        if list_type == 'full':
+            self._init_full()
+        elif list_type == 'half':
+            self._init_half()
+        else:
+            raise Exception(f'Unknown cell list type: {list_type}')
         self._from_particles = False
         self._from_com = False
 
@@ -145,6 +154,75 @@ class CellList():
                 dist = (self.cells[c].pos-self.cells[neigh].pos)/self._box.lengths
                 flag = []
                 for i in range(0,3):
+                    flag.append(self._anint(dist[i]))
+                cell.neighbor_cells_shift[neigh] = flag
+
+    def _init_half(self):
+        # initialize empty cells and calculate the center of each
+        for i in range(0, self._n_cells_total):
+            cell_temp = Cell()
+
+            cell_temp._pos[0] = (i % self._n_cells[0]) * self._cell_sizes[0] + self._box_min[0] + self._cell_sizes[
+                0] / 2.0
+            cell_temp._pos[1] = (int(i / self._n_cells[0]) % self._n_cells[1]) * self._cell_sizes[1] + self._box_min[
+                1] + self._cell_sizes[1] / 2.0
+            cell_temp._pos[2] = (int(i / (self._n_cells[0] * self._n_cells[1])) % self._n_cells[2]) * self._cell_sizes[
+                2] + self._box_min[2] + self._cell_sizes[2] / 2.0
+
+            self.cells.append(cell_temp)
+
+        # define which cells are neighboring
+        for k in range(0, self._n_cells[2]):
+            for j in range(0, self._n_cells[1]):
+                for i in range(0, self._n_cells[0]):
+                    c = i + j * self._n_cells[0] + k * self._n_cells[0] * self._n_cells[1]
+
+                    start = []
+                    end = []
+
+                    for kk, tmp in enumerate([i, j, k]):
+
+                        if not self._periodicity[kk]:
+                            if tmp == 0:
+                                start.append(0)
+                            else:
+                                start.append(-1)
+                            if tmp == self._n_cells[kk] - 1:
+                                end.append(0)
+                            else:
+                                end.append(1)
+                        else:
+                            start.append(-1)
+                            end.append(1)
+
+                    for z in range(start[2], end[2]+1 ):
+                        for y in range(start[1], end[1] + 1):
+                            for x in range(start[0], end[0]+1):
+
+                                # put in some conditions to give us half of the neighboring cells
+
+                                if x == 0 and y == 0 and z == 0:
+                                    continue
+                                if x > 0:
+                                    continue
+                                if x == 0:
+                                    if y > z:
+                                        continue
+                                    if z < 0 and  y == z:
+                                        continue
+
+                                cn = (i + x + self._n_cells[0]) % self._n_cells[0] + \
+                                     ((j + y + self._n_cells[1]) % self._n_cells[1]) * self._n_cells[0] + \
+                                     ((k + z + self._n_cells[2]) % self._n_cells[2]) * self._n_cells[0] * self._n_cells[
+                                         1]
+                                if cn != c:
+                                    self.cells[c]._neighbor_cells.append(cn)
+
+        for c, cell in enumerate(self.cells):
+            for neigh in cell._neighbor_cells:
+                dist = (self.cells[c].pos - self.cells[neigh].pos) / self._box.lengths
+                flag = []
+                for i in range(0, 3):
                     flag.append(self._anint(dist[i]))
                 cell.neighbor_cells_shift[neigh] = flag
     
